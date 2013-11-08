@@ -1,40 +1,92 @@
+# -*- encoding: utf-8; indent-tabs-mode: nil -*-
+#
+#     Test script for Date::Convert::French_Rev
+#     Copyright (C) 2001, 2002, 2003, 2013 Jean Forget
+#
+#     This program is distributed under the same terms as Perl 5.16.3:
+#     GNU Public License version 1 or later and Perl Artistic License
+#
+#     You can find the text of the licenses in the F<LICENSE> file or at
+#     L<http://www.perlfoundation.org/artistic_license_1_0>
+#     and L<http://www.gnu.org/licenses/gpl-1.0.html>.
+#
+#     Here is the summary of GPL:
+#
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 1, or (at your option)
+#     any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software Foundation,
+#     Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+#
+use Test::More;
 use Date::Convert::French_Rev;
 
-my $n = 1;
-
-sub g2r {
-  my $n      = shift;
-  my $date_r = shift;
-  my $format = shift;
-  my $date   = new Date::Convert::Gregorian @_;
-  convert Date::Convert::French_Rev $date;
-  my $date_resul = $date->date_string($format);
-  if ($date_r eq $date_resul)
-    { print "ok $n\n" }
-  else
-    { print "not ok $n : expected $date_r, got $date_resul\n" }
+sub g2r_string {
+  my ($date_r, $yr, $mr, $dr, $yg, $mg, $dg) = @_;
+  my $date   = Date::Convert::Gregorian->new($yg, $mg, $dg);
+  Date::Convert::French_Rev->convert($date);
+  my $date_resul = $date->date_string();
+  is($date_resul, $date_r, "expected $date_r, got $date_resul");
 }
 
-@tests = ([" 1 Vend閙iaire I",    "", 1792,  9, 22],
-	  [" 2 Brumaire II",      "", 1793, 10, 23],
-	  [" 9 Thermidor II",     "", 1794,  7, 27],
-	  [" 3 Frimaire III",     "", 1794, 11, 23],
-	  ["13 Vend閙iaire IV",   "", 1795, 10,  5],
-	  [" 4 Niv魋e IV",        "", 1795, 12, 25],
-	  [" 5 Pluvi魋e V",       "", 1797,  1, 24],
-	  [" 6 Vent魋e VI",       "", 1798,  2, 24],
-	  ["18 Brumaire VIII",    "", 1799, 11,  9],
-	  [" 8 Germinal IX",      "", 1801,  3, 29],
-	  ["10 Flor閍l XII",      "", 1804,  4, 30],
-	  ["12 Prairial XV",      "", 1807,  6,  1],
-	  ["14 Messidor XVIII",   "", 1810,  7,  3],
-	  ["16 Thermidor XXI",    "", 1813,  8,  4],
-	  ["18 Fructidor XXIV",   "", 1816,  9,  4],
-	  ["12 Niv魋e CCVIII",    "", 2000,  1,  1], # Y2K compatible?
-	  ["22 Flor閍l CCIX",     "", 2001,  5, 11],
-	  );
+sub g2r_date {
+  my ($date_r, $yr, $mr, $dr, $yg, $mg, $dg) = @_;
+  my $date   = Date::Convert::Gregorian->new($yg, $mg, $dg);
+  Date::Convert::French_Rev->convert($date);
 
-printf "1..%d\n", scalar @tests;
+  my ($calc_y, $calc_m, $calc_d) = $date->date();
+  ok( $calc_y == $yr && $calc_m == $mr && $calc_d == $dr, "expected ($yr, $mr, $dr), got ($calc_y, $calc_m, $calc_d)" );
+}
 
-foreach (@tests) { g2r $n++, @$_ }
+sub g2r_day {
+  my ($date_r, $yr, $mr, $dr, $yg, $mg, $dg) = @_;
+  my $date   = Date::Convert::Gregorian->new($yg, $mg, $dg);
+  Date::Convert::French_Rev->convert($date);
+
+  my $calc_d = $date->day();
+  my $calc_m = $date->month();
+  my $calc_y = $date->year();
+  ok( $calc_y == $yr && $calc_m == $mr && $calc_d == $dr, "expected ($yr, $mr, $dr), got ($calc_y, $calc_m, $calc_d)" );
+}
+
+@tests = ([" 1 Vend茅miaire I",       1,  1,  1, 1792,  9, 22],
+          [" 2 Brumaire II",         2,  2,  2, 1793, 10, 23],
+          [" 9 Thermidor II",        2, 11,  9, 1794,  7, 27],
+          [" 3 Frimaire III",        3,  3,  3, 1794, 11, 23],
+          ["13 Vend茅miaire IV",      4,  1, 13, 1795, 10,  5],
+          [" 4 Niv么se IV",           4,  4,  4, 1795, 12, 25],
+          [" 5 Pluvi么se V",          5,  5,  5, 1797,  1, 24],
+          [" 6 Vent么se VI",          6,  6,  6, 1798,  2, 24],
+          ["18 Brumaire VIII",       8,  2, 18, 1799, 11,  9],
+          [" 8 Germinal IX",         9,  7,  8, 1801,  3, 29],
+          ["10 Flor茅al XII",        12,  8, 10, 1804,  4, 30],
+          ["12 Prairial XV",        15,  9, 12, 1807,  6,  1],
+          ["14 Messidor XVIII",     18, 10, 14, 1810,  7,  3],
+          ["16 Thermidor XXI",      21, 11, 16, 1813,  8,  4],
+          ["18 Fructidor XXIV",     24, 12, 18, 1816,  9,  4],
+          ["12 Niv么se CCVIII",     208,  4, 12, 2000,  1,  1], # Y2K compatible?
+          ["22 Flor茅al CCIX",      209,  8, 22, 2001,  5, 11],
+          ["12 Niv么se MCCVIII",   1208,  4, 12, 3000,  1,  1],
+          ["11 Niv么se MCCIX",     1209,  4, 11, 3001,  1,  1],
+          ["12 Niv么se MMCCVIII",  2208,  4, 12, 4000,  1,  1],
+          ["12 Niv么se MMCCIX",    2209,  4, 12, 4001,  1,  1],
+          ["12 Niv么se MMMCCVIII", 3208,  4, 12, 5000,  1,  1],
+          ["11 Niv么se MMMCCIX",   3209,  4, 11, 5001,  1,  1],
+          ["13 Niv么se 4208",      4208,  4, 13, 6000,  1,  1],
+          ["13 Niv么se 4209",      4209,  4, 13, 6001,  1,  1],
+          );
+
+plan(tests => scalar 3 * @tests);
+
+foreach (@tests) { g2r_string @$_ }
+foreach (@tests) { g2r_date   @$_ }
+foreach (@tests) { g2r_day    @$_ }
 

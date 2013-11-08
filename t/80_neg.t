@@ -26,23 +26,31 @@
 #     along with this program; if not, write to the Free Software Foundation,
 #     Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 #
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
-
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
-BEGIN { $| = 1; print "1..1\n"; }
-END {print "not ok 1\n" unless $loaded;}
+#
+# Checking negative dates. What matters is only that you can convert *to*
+# a negative revolutionary date and then *from* the same date and get
+# the same result.
+# That is, we do not check the dates are correct, we check the conversions are consistent.
+#
+# The number "80" is inherited from DateTime::Calendar::FrenchRevolutionary
+#
+use Test::More;
 use Date::Convert::French_Rev;
-$loaded = 1;
-print "ok 1\n";
 
-######################### End of black magic.
+sub check_cycle {
+  my ($y, $m, $d) = @_;
+  my $dt  = Date::Convert::Gregorian->new(@_);
+  my $date_g1  = $dt->date_string;
+  Date::Convert::French_Rev->convert($dt);
+  Date::Convert::Gregorian->convert($dt);
+  my $date_g2  = $dt->date_string;
+  is($date_g1, $date_g2);
+}
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
+@tests = ([1792, 9, 22,  1,  1,  1] # the DT-C-FR epoch
+        , [1792, 9, 21,  0, 13,  5] # 1 day before the DT-C-FR epoch
+        , [1789, 7, 14, -3, 10, 25] # Storming of the Bastille
+);
+plan(tests => scalar @tests);
 
+foreach (@tests) { check_cycle @$_ }

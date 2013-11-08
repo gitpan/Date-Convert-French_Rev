@@ -1,7 +1,7 @@
 # -*- encoding: utf-8; indent-tabs-mode: nil -*-
 #
 #     Test script for Date::Convert::French_Rev
-#     Copyright (C) 2001, 2002, 2003, 2013 Jean Forget
+#     Copyright (C) 2013 Jean Forget
 #
 #     This program is distributed under the same terms as Perl 5.16.3:
 #     GNU Public License version 1 or later and Perl Artistic License
@@ -26,23 +26,27 @@
 #     along with this program; if not, write to the Free Software Foundation,
 #     Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 #
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
-
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
-BEGIN { $| = 1; print "1..1\n"; }
-END {print "not ok 1\n" unless $loaded;}
+#
+# Checking leap years.
+#
+# The number "22" is inherited from DateTime::Calendar::FrenchRevolutionary
+#
+use Test::More;
 use Date::Convert::French_Rev;
-$loaded = 1;
-print "ok 1\n";
 
-######################### End of black magic.
+my %years = qw/   1 0    2 0    3 1    4 0    5 0    6 0    7 1    8 0  9 0 10 0
+                 11 1   12 0   13 0   14 0   15 1   16 0   17 0   18 0 19 0 20 1
+                 21 0   22 0   23 0   24 1   25 0   26 0   27 0   28 1 29 0 30 0
+                100 0  200 0  300 0  400 1  500 0  600 0  700 0  800 1
+               1000 0 2000 1 3000 0 4000 0 5000 0 6000 1 7000 0 8000 0
+              /;
+my $nb_tests = keys %years;
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
+plan(tests => 2 * $nb_tests);
 
+for my $y (sort { $a <=> $b } keys %years) {
+  my $msg = "Year $y is " . ($years{$y} ? "leap" : "normal");
+  is(Date::Convert::French_Rev->is_leap($y), $years{$y}, $msg);
+  my $d = Date::Convert::French_Rev->new($y, 1, 1);
+  is($d->is_leap, $years{$y}, $msg);
+}
